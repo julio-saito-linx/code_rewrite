@@ -40,4 +40,19 @@ describe('rewriting code', function () {
 		assert.equal('40 + 41;', newCode);
 	});
 
+	it('should preserve comments', function () {
+		var syntax = parser.parse([
+			'// this is a comment',
+			'2 + 1;// other comment, bro!',
+		].join('\n'));
+
+		var newCode = generator.generate(syntax);
+
+		assert.equal([
+			'// this is a comment',
+			'2 + 1;    // other comment, bro!',    // idented comment
+			'',						 // new line from hell
+		].join('\n'), newCode);
+	});
+
 });
