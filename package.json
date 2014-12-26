@@ -9,7 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "escodegen": "^1.4.3"
+    "escodegen": "^1.4.3",
+    "esprima": "^1.2.2"
   },
   "devDependencies": {
     "chai": "^1.10.0",

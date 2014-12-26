@@ -10,11 +10,7 @@ gulp.task('clean', function () {
         .pipe(clean({force: true}));
 });
 
-gulp.task('watch', function() {
-  gulp.watch('src/**/*.js', ['mocha']);
-});
-
-gulp.task('default', ['mocha', 'watch']);
+gulp.task('default', ['test']);
 
 /**
  * mocha + watch
@@ -31,5 +27,5 @@ gulp.task('mocha', function() {
         .pipe( mocha( {
             reporter: 'spec', growl: 'true', grep: yargs.argv.grep, timeout: 4000
         } ))
-        .on('error', gutil.log);
+        //.on('error', gutil.log);
 });
