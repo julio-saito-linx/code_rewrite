@@ -5,7 +5,7 @@
   "main": "gulpfile.js",
   "scripts": {
     "test": "",
-    "start": "./node_modules/nodemon/bin/nodemon.js -w code convert.js"
+    "start": "./node_modules/nodemon/bin/nodemon.js --watch code --watch convert.js -e js convert.js"
   },
   "author": "",
   "license": "ISC",

@@ -8,7 +8,7 @@ var rewriter = require('../src/rewriter');
 //FIXME: refactoring that, a lot!
 FS.listTree('code/')
 .then(function(files) {
-    console.log('\n>>---------\n files:', files, '\n>>---------\n');
+    // console.log('\n>>---------\n files:', files, '\n>>---------\n');
     files.forEach(function(file) {
         FS.stat(path.join(__dirname, file))
         .then(function(stats) {
