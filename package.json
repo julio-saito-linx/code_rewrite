@@ -10,7 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "escodegen": "^1.4.3",
-    "esprima": "^1.2.2"
+    "esprima": "^1.2.2",
+    "q": "^1.1.2",
+    "q-io": "^1.11.6"
   },
   "devDependencies": {
     "chai": "^1.10.0",

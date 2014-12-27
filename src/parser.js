@@ -6,9 +6,9 @@ module.exports = {
 	parse: function(code) {
         var syntax = esprima.parse(code, {
         	raw: true,
-        	tokens: true,
-        	range: true,
-        	comment: true
+        	tokens: false,
+        	range: false,
+        	comment: false
         });
 
         return syntax;
