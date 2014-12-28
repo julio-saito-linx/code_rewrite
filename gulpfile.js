@@ -27,5 +27,5 @@ gulp.task('mocha', function() {
         .pipe( mocha( {
             reporter: 'spec', growl: 'true', grep: yargs.argv.grep, timeout: 4000
         } ))
-        //.on('error', gutil.log);
+        .on('error', gutil.log);
 });

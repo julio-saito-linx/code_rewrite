@@ -1,15 +1,27 @@
 'use strict';
 
-var assert = require('chai').assert;
+var chai = require("chai");
+var chaiAsPromised = require("chai-as-promised");
+chai.use(chaiAsPromised);
+var assert = chai.assert;
+
 var parser = require('../src/parser');
 var generator = require('../src/generator');
+var rewriter = require('../src/rewriter');
 
 
 // https://github.com/ariya/esprima/blob/master/demo%2Frewrite.js
 describe('rewriting code', function () {
 
+	var parseOptions = {
+    	raw: false,
+    	tokens: true,
+    	range: true,
+    	comment: true
+	};
+
 	it('should parse a code', function () {
-		var syntax = parser.parse('40 + 2;');
+		var syntax = parser.parse('40 + 2;', parseOptions);
 
 		// body[0]
 		var body = syntax.body[0];
@@ -34,7 +46,7 @@ describe('rewriting code', function () {
 	});
 
 	it('should parse and regenarete', function () {
-		var syntax = parser.parse('   40   +    41    ;');
+		var syntax = parser.parse('   40   +    41    ;', parseOptions);
 		var newCode = generator.generate(syntax);
 
 		assert.equal('40 + 41;', newCode);
@@ -44,7 +56,7 @@ describe('rewriting code', function () {
 		var syntax = parser.parse([
 			'// this is a comment',
 			'2 + 1;// other comment, bro!',
-		].join('\n'));
+		].join('\n'), parseOptions);
 
 		var newCode = generator.generate(syntax);
 
@@ -53,6 +65,40 @@ describe('rewriting code', function () {
 			'2 + 1;    // other comment, bro!',    // idented comment
 			'',						 // new line from hell
 		].join('\n'), newCode);
+	});
+
+
+	describe('getting name of the function', function () {
+
+		var parseOptions = {
+	    	raw: false,
+	    	tokens: false,
+	    	range: false,
+	    	comment: false
+		};
+
+		it('__getFunctionName f1', function () {
+			var syntax = parser.parse([
+				'var f1 = function(arg1, arg2) {',
+				'    return arg1 + arg2;',
+				'};',
+			].join('\n'), parseOptions);
+
+			return assert.eventually.propertyVal(
+				rewriter.__getFunctionName(syntax), 'name', 'f1');
+		});
+
+		it('__getFunctionName f2', function () {
+			var syntax = parser.parse([
+				'function f2 (arg1, arg2) {',
+				'    return arg1 + arg2;',
+				'};',
+			].join('\n'), parseOptions);
+
+			return assert.eventually.propertyVal(
+				rewriter.__getFunctionName(syntax), 'name', 'f2');
+		});
+
 	});
 
 });

@@ -3,44 +3,51 @@
 var FS = require('q-io/fs');
 var path = require('path');
 var rewriter = require('../src/rewriter');
+var Q = require('q');
 
 
-//FIXME: refactoring that, a lot!
-FS.listTree('code/')
-.then(function(files) {
-    // console.log('\n>>---------\n files:', files, '\n>>---------\n');
-    files.forEach(function(file) {
-        FS.stat(path.join(__dirname, file))
-        .then(function(stats) {
-            // console.log('\n>>---------\n stats:', stats, '\n>>---------\n');
-            // console.log('\n>>---------\n stats.isFile():', stats.isFile(), '\n>>---------\n');
-            if (stats.isFile()) {
-                var allPaths = file.split(path.sep);
-                // console.log('\n>>---------\n allPaths:', allPaths, '\n>>---------\n');
+var generateSyntasForAllFiles = function(files) {
+    return new Q.Promise(function (resolve, reject, notify) {
+        var allSyntaxes = [];
+        files.forEach(function(file) {
 
-                var allPath2 = allPaths.splice(1);
-                // console.log('\n>>---------\n allPath2:', allPath2, '\n>>---------\n');
+            // get info from files
+            FS.stat(path.join(__dirname, file))
+            .then(function(stats) {
 
-                var destinationPath = path.join(__dirname, 'syntax', allPath2[0], allPath2[1]);
+                if (stats.isFile()) {
+                    // remove first path
+                    var allPaths = file.split(path.sep);
+                    var allPath2 = allPaths.splice(1);
+                    var destinationPath = path.join(__dirname, 'syntax', allPath2[0], allPath2[1]);
 
-                FS.makeTree(path.join(__dirname, 'syntax', allPath2[0])).then(function() {
-                    // console.log('\n>>---------\n destinationPath:', destinationPath, '\n>>---------\n');
+                    // create new "syntax" folder
+                    FS.makeTree(path.join(__dirname, 'syntax', allPath2[0])).then(function() {
 
-                    rewriter.writeSyntax(
-                        path.join(__dirname, file),
-                        destinationPath);
+                        // write syntax
+                        rewriter.writeSyntax(
+                            path.join(__dirname, file),
+                            destinationPath);
 
-                }).catch(function(err) {
-                    console.log('\n>>---------\n err:', err.stack, '\n>>---------\n');
-                });
+                        allSyntaxes.push(destinationPath);
 
-            }
-        })
-        .catch(function(err) {
-            console.log('\n>>---------\n err:', err.stack, '\n>>---------\n');
+                    }).catch(function(err) {
+                        reject(err);
+                    });
+                }
+            })
+            .catch(function(err) {
+                reject(err);
+            });
         });
+
+        resolve(allSyntaxes);
+
     });
-})
+};
+
+// list all files from "code/"
+FS.listTree('code/').then(generateSyntasForAllFiles)
 .catch(function(err) {
     console.log('\n>>---------\n err:', err.stack, '\n>>---------\n');
 });
