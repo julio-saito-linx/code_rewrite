@@ -5,7 +5,7 @@ var parser = require('./parser');
 var generator = require('./generator');
 var Q = require('q');
 var estraverse = require('estraverse');
-
+var log = require('./logger/logger');
 
 module.exports = {
     __readFile: function(fullPath) {
@@ -63,10 +63,11 @@ module.exports = {
         return this.__readFile(sourceFilePath)
         .then(self.__getSyntax)
         .then(self.__getFunctionName)
-        .then(self.__findFunctionBlockArray)
         .then(self.__insertConsoleLog)
-        .then(self.__generateCode)
-        .then(self.__writeFile)
+        .then(function(partial_result) {
+            var code = self.__generateCode(partial_result.syntax);
+            return self.__writeFile(destinationFilePath, code);
+        })
         .catch(function(err) {
             console.log('\n>>---------\n err.stack:', err.stack, '\n>>---------\n');
         });
@@ -74,49 +75,98 @@ module.exports = {
 
     __getFunctionName: function(syntax) {
         return new Q.Promise(function (resolve, reject) {
+            var result = null;
             estraverse.traverse(syntax, {
               enter: function(node){
 
                 // Function Expressions
                 if (node.type === 'VariableDeclarator') {
                     if (node.init && node.init.type === 'FunctionExpression') {
-                        return resolve({
-                            name: node.id.name,   // var FUNC_VAR_NAME = ....
-                            node: node.init       // FunctionExpression
-                        });
+                        result = {
+                            syntax: syntax,           // all syntax
+                            name: node.id.name,       // var FUNC_VAR_NAME = ....
+                            function_node: node.init  // FunctionExpression
+                        };
+
+                        log.debug('\n\n:: rewriter.__getFunctionName() - result::');
+                        log.debug(result);
+                        return resolve(result);
+
                     }
                 }
 
                 // Function Declarations
                 if (node.type === 'FunctionDeclaration') {
                     if (node.id && node.id.type === 'Identifier' && node.id.name) {
-                        return resolve({
-                            name: node.id.name,   //function NAME () {}
-                            node: node            //FunctionExpression
-                        });
+                        result = {
+                            syntax: syntax,      // all syntax
+                            name: node.id.name,  // var FUNC_VAR_NAME = ....
+                            function_node: node  // FunctionExpression
+                        };
+
+                        log.debug('\n\n:: rewriter.__getFunctionName() - result::');
+                        log.debug(result);
+                        return resolve(result);
+
                     }
                 }
+
+
               }
             });
             reject('CANNOT FIND FUNCTION\'S NAME');
         });
     },
 
-    __findFunctionBlockArray: function(f_node_result) {
+    __insertConsoleLog: function(f_node_result) {
         return new Q.Promise(function (resolve, reject) {
+            var result = null;
 
-            var block_body = f_node_result.node.body && f_node_result.node.body.body;
+            log.debug('\n\n:: rewriter.__insertConsoleLog() - f_node_result::');
+            log.debug(f_node_result);
 
-            if (block_body) {
-                return resolve({
-                    name      : f_node_result.name,    // function's "name"
-                    node      : f_node_result.node,    // FunctionExpression
-                    block_body: block_body             // function's block array
-                });
-            }
-            else{
-                return reject('CANNOT FIND FUNCTION\'S BLOCK ARRAY');
-            }
+            var block_body = f_node_result.function_node.body.body;
+
+            block_body.unshift({
+              "type": "ExpressionStatement",
+              "expression": {
+                "type": "CallExpression",
+                "callee": {
+                  "type": "MemberExpression",
+                  "computed": false,
+                  "object": {
+                    "type": "Identifier",
+                    "name": "console"
+                  },
+                  "property": {
+                    "type": "Identifier",
+                    "name": "log"
+                  }
+                },
+                "arguments": [
+                  {
+                    "type": "Literal",
+                    "value": f_node_result.name + ':',
+                    "raw": "'"+ f_node_result.name +":'"
+                  },
+                  {
+                    "type": "Identifier",
+                    "name": "arguments"
+                  }
+                ]
+              }
+            });
+
+            result = {
+                syntax: f_node_result.syntax,       // all syntax
+                name: f_node_result.name,           // function's "name"
+                function_node: f_node_result.node,  // FunctionExpression
+            };
+
+            log.debug('\n\n:: rewriter.__insertConsoleLog() - result::');
+            log.debug(result);
+
+            return resolve(result);
 
         });
     },

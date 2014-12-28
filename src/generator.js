@@ -1,8 +1,9 @@
 'use strict';
 
 var escodegen = require('escodegen');
+var log = require('./logger/logger');
 
-var option = {
+var default_options = {
     comment: true,
     format: {
         indent: {
@@ -27,7 +28,11 @@ var option = {
 module.exports = {
 	generate: function(syntax) {
         syntax = escodegen.attachComments(syntax, syntax.comments, syntax.tokens);
-        var code = escodegen.generate(syntax, option);
+        var code = escodegen.generate(syntax, default_options);
+
+        log.debug('\n\n:: generator.generate() - code::');
+        log.debug(code);
+
         return code;
     }
 };
