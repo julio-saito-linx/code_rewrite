@@ -68,8 +68,7 @@ describe('rewriting code', function () {
 	});
 
 
-	describe('getting name of the function', function () {
-
+	describe('instrumentalize()', function () {
 		var parseOptions = {
 	    	raw: false,
 	    	tokens: false,
@@ -77,28 +76,90 @@ describe('rewriting code', function () {
 	    	comment: false
 		};
 
-		it('__getFunctionName f1', function () {
-			var syntax = parser.parse([
-				'var f1 = function(arg1, arg2) {',
-				'    return arg1 + arg2;',
-				'};',
-			].join('\n'), parseOptions);
+		describe('__getFunctionName()', function () {
 
-			return assert.eventually.propertyVal(
-				rewriter.__getFunctionName(syntax), 'name', 'f1');
-		});
+			it('Function Expressions', function () {
+				var syntax = parser.parse([
+					'var f1 = function(arg1, arg2) {',
+					'    return arg1 + arg2;',
+					'};',
+				].join('\n'), parseOptions);
 
-		it('__getFunctionName f2', function () {
-			var syntax = parser.parse([
-				'function f2 (arg1, arg2) {',
-				'    return arg1 + arg2;',
-				'};',
-			].join('\n'), parseOptions);
+				return assert.eventually.propertyVal(
+					rewriter.__getFunctionName(syntax), 'name', 'f1');
+			});
 
-			return assert.eventually.propertyVal(
-				rewriter.__getFunctionName(syntax), 'name', 'f2');
-		});
+			it('Function Declarations', function () {
+				var syntax = parser.parse([
+					'function f2 (arg1, arg2) {',
+					'    return arg1 + arg2;',
+					'};',
+				].join('\n'), parseOptions);
 
-	});
+				return assert.eventually.propertyVal(
+					rewriter.__getFunctionName(syntax),
+					'name', 'f2');
+			});
+
+		}); // __getFunctionName()
+
+
+		describe('__findFunctionBlockArray', function () {
+
+			it('Function Expressions', function () {
+
+				var stubResult = {
+				  "name": "f1",
+				  "node": {
+				    "type": "FunctionExpression",
+				    "id": null,
+				    "params": [
+				      {
+				        "type": "Identifier",
+				        "name": "arg1"
+				      },
+				      {
+				        "type": "Identifier",
+				        "name": "arg2"
+				      }
+				    ],
+				    "defaults": [],
+				    "body": {
+				      "type": "BlockStatement",
+				      "body": [
+				        {
+				          "type": "ReturnStatement",
+				          "argument": {
+				            "type": "BinaryExpression",
+				            "operator": "+",
+				            "left": {
+				              "type": "Identifier",
+				              "name": "arg1"
+				            },
+				            "right": {
+				              "type": "Identifier",
+				              "name": "arg2"
+				            }
+				          }
+				        }
+				      ]
+				    },
+				    "rest": null,
+				    "generator": false,
+				    "expression": false
+				  }
+				};
+
+				return assert.eventually.deepPropertyVal(
+					rewriter.__findFunctionBlockArray(stubResult),
+					'block_body[0].type', 'ReturnStatement');
+
+			});
+
+		}); // __findFunctionBlockArray()
+
+
+	}); // instrumentalize()
+
 
 });

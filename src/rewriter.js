@@ -4,6 +4,8 @@ var FS = require('q-io/fs');
 var parser = require('./parser');
 var generator = require('./generator');
 var Q = require('q');
+var estraverse = require('estraverse');
+
 
 module.exports = {
     __readFile: function(fullPath) {
@@ -72,7 +74,6 @@ module.exports = {
 
     __getFunctionName: function(syntax) {
         return new Q.Promise(function (resolve, reject) {
-            var estraverse = require('estraverse');
             estraverse.traverse(syntax, {
               enter: function(node){
 
@@ -80,8 +81,8 @@ module.exports = {
                 if (node.type === 'VariableDeclarator') {
                     if (node.init && node.init.type === 'FunctionExpression') {
                         return resolve({
-                            name: node.id.name,
-                            node: node
+                            name: node.id.name,   // var FUNC_VAR_NAME = ....
+                            node: node.init       // FunctionExpression
                         });
                     }
                 }
@@ -90,14 +91,33 @@ module.exports = {
                 if (node.type === 'FunctionDeclaration') {
                     if (node.id && node.id.type === 'Identifier' && node.id.name) {
                         return resolve({
-                            name: node.id.name,
-                            node: node
+                            name: node.id.name,   //function NAME () {}
+                            node: node            //FunctionExpression
                         });
                     }
                 }
               }
             });
             reject('CANNOT FIND FUNCTIONS NAME');
+        });
+    },
+
+    __findFunctionBlockArray: function(f_node_result) {
+        return new Q.Promise(function (resolve, reject) {
+
+            var block_body = f_node_result.node.body && f_node_result.node.body.body;
+
+            if (block_body) {
+                return resolve({
+                    name      : f_node_result.name,    // function's "name"
+                    node      : f_node_result.node,    // FunctionExpression
+                    block_body: block_body             // function's block array
+                });
+            }
+            else{
+                return reject('CANNOT FIND FUNCTIONS BLOCK ARRAY');
+            }
+
         });
     },
 
