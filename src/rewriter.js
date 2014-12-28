@@ -98,7 +98,7 @@ module.exports = {
                 }
               }
             });
-            reject('CANNOT FIND FUNCTIONS NAME');
+            reject('CANNOT FIND FUNCTION\'S NAME');
         });
     },
 
@@ -115,7 +115,7 @@ module.exports = {
                 });
             }
             else{
-                return reject('CANNOT FIND FUNCTIONS BLOCK ARRAY');
+                return reject('CANNOT FIND FUNCTION\'S BLOCK ARRAY');
             }
 
         });
