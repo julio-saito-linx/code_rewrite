@@ -63,7 +63,7 @@ module.exports = {
         return this.__readFile(sourceFilePath)
         .then(self.__getSyntax)
         .then(self.__getFunctionName)
-        .then(self.__insertConsoleLog)
+        .then(self.__insertAllConsoleLog)
         .then(function(partial_result) {
             var code = self.__generateCode(partial_result.syntax);
             return self.__writeFile(destinationFilePath, code);
@@ -127,14 +127,14 @@ module.exports = {
         });
     },
 
-    __insertConsoleLog: function(f_node_result) {
+    __insertConsoleLog: function(f_name_result) {
         return new Q.Promise(function (resolve, reject) {
             var result = null;
 
-            log.debug('\n\n:: rewriter.__insertConsoleLog() - f_node_result::');
-            log.debug(f_node_result);
+            log.debug('\n\n:: rewriter.__insertConsoleLog() - f_name_result::');
+            log.debug(f_name_result);
 
-            var block_body = f_node_result.function_node.body.body;
+            var block_body = f_name_result.function_node.body.body;
 
             block_body.unshift({
               "type": "ExpressionStatement",
@@ -155,8 +155,8 @@ module.exports = {
                 "arguments": [
                   {
                     "type": "Literal",
-                    "value": f_node_result.name + ':',
-                    "raw": "'"+ f_node_result.name +":'"
+                    "value": f_name_result.name + ':',
+                    "raw": "'"+ f_name_result.name +":'"
                   },
                   {
                     "type": "Identifier",
@@ -167,9 +167,9 @@ module.exports = {
             });
 
             result = {
-                syntax: f_node_result.syntax,       // all syntax
-                name: f_node_result.name,           // function's "name"
-                function_node: f_node_result.node,  // FunctionExpression
+                syntax: f_name_result.syntax,       // all syntax
+                name: f_name_result.name,           // function's "name"
+                function_node: f_name_result.node,  // FunctionExpression
             };
 
             log.debug('\n\n:: rewriter.__insertConsoleLog() - result::');
@@ -177,6 +177,49 @@ module.exports = {
 
             return resolve(result);
 
+        });
+    },
+
+    __insertAllConsoleLog: function(f_name_results) {
+        var self= this;
+        return new Q.Promise(function (resolve, reject) {
+            var allSyntax = f_name_results.syntax;
+            var allCalls = [];
+            f_name_results.functionsNames.forEach(function(functionNameResult) {
+
+                /****** DEBUG ******************************************************************/
+                /******************************************************************************/
+                var debugSource = functionNameResult;
+                var util = require('util');
+                var scrubbed = util.inspect(debugSource, {
+                  showHidden: true,
+                  depth: 3,
+                  colors: true
+                });
+
+                console.log(
+                  '\n>>------------------------------------------------------\n' +
+                  '  source: ( ' + __filename + ' )'                             +
+                  '\n  ------------------------------------------------------\n' +
+                  '  $ functionNameResult'                                                     +
+                  '\n  ------------------------------------------------------\n' +
+                     scrubbed                                                    +
+                  '\n<<------------------------------------------------------\n'
+                );
+
+                /******************************************************************************/
+                /****** \DEBUG ***************************************************************/
+
+
+
+                allCalls.push(self.__insertAllConsoleLog({
+                    syntax: allSyntax,
+                    name: functionNameResult.name,
+                    function_node: functionNameResult.function_node
+                }));
+            });
+
+            return Q.all(allCalls);
         });
     },
 

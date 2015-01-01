@@ -164,9 +164,27 @@ describe('rewriting code', function () {
 
 			});
 
-
-
 		}); // __getFunctionName()
+
+
+
+        describe('__insertConsoleLog()', function () {
+
+            it('should insert a console log', function () {
+                var syntax = parser.parse([
+                    'var f1 = function(arg1, arg2) {',
+                    '    return arg1 + arg2;',
+                    '};',
+                ].join('\n'), parseOptions);
+
+                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                var syntax_with_console = rewriter.__insertAllConsoleLog(functionsNamesResult);
+                return assert.eventually.deepPropertyVal(syntax_with_console,
+                    'functionsNames[0].name', 'f1');
+            });
+        }); // __insertConsoleLog()
+
+
 
 	}); // instrumentalize()
 });
