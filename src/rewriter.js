@@ -75,45 +75,54 @@ module.exports = {
 
     __getFunctionName: function(syntax) {
         return new Q.Promise(function (resolve, reject) {
+            var results = [];
             var result = null;
             estraverse.traverse(syntax, {
-              enter: function(node){
+                enter: function(node){
 
-                // Function Expressions
-                if (node.type === 'VariableDeclarator') {
-                    if (node.init && node.init.type === 'FunctionExpression') {
-                        result = {
-                            syntax: syntax,           // all syntax
-                            name: node.id.name,       // var FUNC_VAR_NAME = ....
-                            function_node: node.init  // FunctionExpression
-                        };
+                    // Function Expressions
+                    if (node.type === 'VariableDeclarator') {
+                        if (node.init && node.init.type === 'FunctionExpression') {
+                            result = {
+                                name: node.id.name,       // var FUNC_VAR_NAME = ....
+                                function_node: node.init  // FunctionExpression
+                            };
 
-                        log.debug('\n\n:: rewriter.__getFunctionName() - result::');
-                        log.debug(result);
-                        return resolve(result);
-
+                            log.debug('\n\n:: rewriter.__getFunctionName() - result::');
+                            log.debug(result);
+                            results.push(result);
+                        }
                     }
-                }
 
-                // Function Declarations
-                if (node.type === 'FunctionDeclaration') {
-                    if (node.id && node.id.type === 'Identifier' && node.id.name) {
-                        result = {
-                            syntax: syntax,      // all syntax
-                            name: node.id.name,  // var FUNC_VAR_NAME = ....
-                            function_node: node  // FunctionExpression
-                        };
+                    // Function Declarations
+                    else if (node.type === 'FunctionDeclaration') {
+                        if (node.id && node.id.type === 'Identifier' && node.id.name) {
+                            result = {
+                                name: node.id.name,  // var FUNC_VAR_NAME = ....
+                                function_node: node  // FunctionExpression
+                            };
 
-                        log.debug('\n\n:: rewriter.__getFunctionName() - result::');
-                        log.debug(result);
-                        return resolve(result);
-
+                            log.debug('\n\n:: rewriter.__getFunctionName() - result::');
+                            log.debug(result);
+                            results.push(result);
+                        }
                     }
-                }
+                },
 
+                // leave: function (node, parent) {
+                //     if (node.type == 'FunctionDeclaration')
+                //       console.log('leaving ', node.type);
+                // }
 
-              }
             });
+
+            if (results) {
+                return resolve({
+                    syntax: syntax,           // all syntax
+                    functionsNames: results
+                });
+            }
+
             reject('CANNOT FIND FUNCTION\'S NAME');
         });
     },

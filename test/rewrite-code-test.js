@@ -1,7 +1,8 @@
 'use strict';
 
-var chai = require("chai");
-var chaiAsPromised = require("chai-as-promised");
+var chai = require('chai');
+var Q = require('q');
+var chaiAsPromised = require('chai-as-promised');
 chai.use(chaiAsPromised);
 var assert = chai.assert;
 
@@ -85,21 +86,85 @@ describe('rewriting code', function () {
 					'};',
 				].join('\n'), parseOptions);
 
-				return assert.eventually.propertyVal(
-					rewriter.__getFunctionName(syntax), 'name', 'f1');
+				var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                return assert.eventually.deepPropertyVal(functionsNamesResult,
+					'functionsNames[0].name', 'f1');
 			});
 
-			it('Function Declarations', function () {
+            it('Function Declarations', function () {
+                var syntax = parser.parse([
+                    'function f2 (arg1, arg2) {',
+                    '    return arg1 + arg2;',
+                    '};',
+                ].join('\n'), parseOptions);
+
+                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                return assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[0].name', 'f2');
+            });
+
+            it('Function Expressions override Function Declarations', function () {
+                var syntax = parser.parse([
+                    'var f3 = function f4 (arg1, arg2) {',
+                    '    return arg1 + arg2;',
+                    '};',
+                ].join('\n'), parseOptions);
+
+                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                return assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[0].name', 'f3');
+
+            });
+
+            it('shoud get all names', function (done) {
+                var syntax = parser.parse([
+                    'var f5 = function () {};',
+                    'var f6 = function () {};',
+                    'function f7 () {',
+                    '    function f8 () {};',
+                    '};',
+                ].join('\n'), parseOptions);
+
+                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+
+                Q.all([
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[0].name', 'f5'),
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[1].name', 'f6'),
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[2].name', 'f7'),
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[3].name', 'f8').notify(done),
+                ]);
+
+            });
+
+			it('Get All names', function (done) {
 				var syntax = parser.parse([
-					'function f2 (arg1, arg2) {',
-					'    return arg1 + arg2;',
-					'};',
+                    'var f5 = function () {};',
+                    'var f6 = function () {};',
+                    'function f7 () {',
+                    '    function f8 () {};',
+                    '};',
 				].join('\n'), parseOptions);
 
-				return assert.eventually.propertyVal(
-					rewriter.__getFunctionName(syntax),
-					'name', 'f2');
+                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+
+                Q.all([
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[0].name', 'f5'),
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[1].name', 'f6'),
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[2].name', 'f7'),
+                    assert.eventually.deepPropertyVal(functionsNamesResult,
+                    'functionsNames[3].name', 'f8').notify(done),
+                ]);
+
 			});
+
+
 
 		}); // __getFunctionName()
 
