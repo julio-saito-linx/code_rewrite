@@ -60,11 +60,11 @@ module.exports = {
 
 	instrumentalize: function(sourceFilePath, destinationFilePath) {
         var self = this;
-        return this.__readFile(sourceFilePath)
-        .then(self.__getSyntax)
-        .then(self.__getFunctionName)
-        .then(self.__insertAllConsoleLog)
-        .then(function(partial_result) {
+        return self.__readFile(sourceFilePath)
+         .then(self.__getSyntax)
+         .then(self.__getAllFunctionsName)
+         .then(self.__insertAllConsoleLog)
+         .then(function(partial_result) {
             var code = self.__generateCode(partial_result.syntax);
             return self.__writeFile(destinationFilePath, code);
         })
@@ -73,7 +73,7 @@ module.exports = {
         });
     },
 
-    __getFunctionName: function(syntax) {
+    __getAllFunctionsName: function(syntax) {
         return new Q.Promise(function (resolve, reject) {
             var results = [];
             var result = null;
@@ -88,7 +88,7 @@ module.exports = {
                                 function_node: node.init  // FunctionExpression
                             };
 
-                            log.debug('\n\n:: rewriter.__getFunctionName() - result::');
+                            log.debug('\n\n:: rewriter.__getAllFunctionsName() - result::');
                             log.debug(result);
                             results.push(result);
                         }
@@ -102,7 +102,7 @@ module.exports = {
                                 function_node: node  // FunctionExpression
                             };
 
-                            log.debug('\n\n:: rewriter.__getFunctionName() - result::');
+                            log.debug('\n\n:: rewriter.__getAllFunctionsName() - result::');
                             log.debug(result);
                             results.push(result);
                         }
@@ -117,16 +117,47 @@ module.exports = {
             });
 
             if (results) {
-                return resolve({
-                    syntax: syntax,           // all syntax
+                var finallyResult = {
+                    fullSyntax: syntax,           // all syntax
                     functionsNames: results
-                });
+                };
+
+                log.debug('\n\n:: rewriter.__getAllFunctionsName() - finallyResult::');
+                log.debug(finallyResult);
+
+                return resolve(finallyResult);
             }
 
             reject('CANNOT FIND FUNCTION\'S NAME');
         });
     },
 
+    __insertAllConsoleLog: function(f_name_results) {
+        var rewriter = require('./rewriter');
+        return new Q.Promise(function (resolve, reject) {
+            var allCalls = [];
+
+            f_name_results.functionsNames.forEach(function(functionNameResult) {
+
+                allCalls.push(rewriter.__insertConsoleLog({
+                    syntax: f_name_results.fullSyntax,
+                    name: functionNameResult.name,
+                    function_node: functionNameResult.function_node
+                }));
+
+            });
+
+            Q.all(allCalls).then(function(allResults) {
+                var finalResult = {
+                    syntax: allResults[0].syntax,
+                    allResults: allResults
+                };
+                resolve(finalResult);
+            });
+        });
+    },
+
+    // Insert ONE console log in ONE function
     __insertConsoleLog: function(f_name_result) {
         return new Q.Promise(function (resolve, reject) {
             var result = null;
@@ -180,47 +211,5 @@ module.exports = {
         });
     },
 
-    __insertAllConsoleLog: function(f_name_results) {
-        var self= this;
-        return new Q.Promise(function (resolve, reject) {
-            var allSyntax = f_name_results.syntax;
-            var allCalls = [];
-            f_name_results.functionsNames.forEach(function(functionNameResult) {
-
-                /****** DEBUG ******************************************************************/
-                /******************************************************************************/
-                var debugSource = functionNameResult;
-                var util = require('util');
-                var scrubbed = util.inspect(debugSource, {
-                  showHidden: true,
-                  depth: 3,
-                  colors: true
-                });
-
-                console.log(
-                  '\n>>------------------------------------------------------\n' +
-                  '  source: ( ' + __filename + ' )'                             +
-                  '\n  ------------------------------------------------------\n' +
-                  '  $ functionNameResult'                                                     +
-                  '\n  ------------------------------------------------------\n' +
-                     scrubbed                                                    +
-                  '\n<<------------------------------------------------------\n'
-                );
-
-                /******************************************************************************/
-                /****** \DEBUG ***************************************************************/
-
-
-
-                allCalls.push(self.__insertAllConsoleLog({
-                    syntax: allSyntax,
-                    name: functionNameResult.name,
-                    function_node: functionNameResult.function_node
-                }));
-            });
-
-            return Q.all(allCalls);
-        });
-    },
 
 };

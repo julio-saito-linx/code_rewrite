@@ -77,7 +77,7 @@ describe('rewriting code', function () {
 	    	comment: false
 		};
 
-		describe('__getFunctionName()', function () {
+		describe('__getAllFunctionsName()', function () {
 
 			it('Function Expressions', function () {
 				var syntax = parser.parse([
@@ -86,7 +86,7 @@ describe('rewriting code', function () {
 					'};',
 				].join('\n'), parseOptions);
 
-				var functionsNamesResult = rewriter.__getFunctionName(syntax);
+				var functionsNamesResult = rewriter.__getAllFunctionsName(syntax);
                 return assert.eventually.deepPropertyVal(functionsNamesResult,
 					'functionsNames[0].name', 'f1');
 			});
@@ -98,7 +98,7 @@ describe('rewriting code', function () {
                     '};',
                 ].join('\n'), parseOptions);
 
-                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                var functionsNamesResult = rewriter.__getAllFunctionsName(syntax);
                 return assert.eventually.deepPropertyVal(functionsNamesResult,
                     'functionsNames[0].name', 'f2');
             });
@@ -110,7 +110,7 @@ describe('rewriting code', function () {
                     '};',
                 ].join('\n'), parseOptions);
 
-                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                var functionsNamesResult = rewriter.__getAllFunctionsName(syntax);
                 return assert.eventually.deepPropertyVal(functionsNamesResult,
                     'functionsNames[0].name', 'f3');
 
@@ -125,7 +125,7 @@ describe('rewriting code', function () {
                     '};',
                 ].join('\n'), parseOptions);
 
-                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                var functionsNamesResult = rewriter.__getAllFunctionsName(syntax);
 
                 Q.all([
                     assert.eventually.deepPropertyVal(functionsNamesResult,
@@ -149,7 +149,7 @@ describe('rewriting code', function () {
                     '};',
 				].join('\n'), parseOptions);
 
-                var functionsNamesResult = rewriter.__getFunctionName(syntax);
+                var functionsNamesResult = rewriter.__getAllFunctionsName(syntax);
 
                 Q.all([
                     assert.eventually.deepPropertyVal(functionsNamesResult,
@@ -164,11 +164,11 @@ describe('rewriting code', function () {
 
 			});
 
-		}); // __getFunctionName()
+		}); // __getAllFunctionsName()
 
 
 
-        describe('__insertConsoleLog()', function () {
+        describe('__insertAllConsoleLog()', function () {
 
             it('should insert a console log', function () {
                 var syntax = parser.parse([
@@ -177,12 +177,57 @@ describe('rewriting code', function () {
                     '};',
                 ].join('\n'), parseOptions);
 
-                var functionsNamesResult = rewriter.__getFunctionName(syntax);
-                var syntax_with_console = rewriter.__insertAllConsoleLog(functionsNamesResult);
-                return assert.eventually.deepPropertyVal(syntax_with_console,
-                    'functionsNames[0].name', 'f1');
+                // get all functions names
+                return rewriter.__getAllFunctionsName(syntax)
+                .then(function(functionsNamesResult) {
+
+                    // insert consoles
+                    return rewriter.__insertAllConsoleLog(functionsNamesResult)
+                    .then(function(syntax_with_console) {
+
+                        // check
+                        assert.propertyVal(syntax_with_console.allResults[0],
+                            'name', 'f1');
+
+                    });
+                });
             });
-        }); // __insertConsoleLog()
+
+            it('should insert 3 consoles log', function () {
+                var syntax = parser.parse([
+                    'var f1 = function(arg1, arg2) {',
+                    '    return arg1 + arg2;',
+                    '};',
+                    'var f2 = function(arg1, arg2) {',
+                    '    return arg1 + arg2;',
+                    '};',
+                    'var f3 = function(arg1, arg2) {',
+                    '    return arg1 + arg2;',
+                    '};',
+                ].join('\n'), parseOptions);
+
+                // get all functions names
+                return rewriter.__getAllFunctionsName(syntax)
+                .then(function(functionsNamesResult) {
+
+                    // insert consoles
+                    return rewriter.__insertAllConsoleLog(functionsNamesResult)
+                    .then(function(syntax_with_console) {
+
+                        // check
+                        assert.propertyVal(syntax_with_console.allResults[0],
+                            'name', 'f1');
+                        assert.propertyVal(syntax_with_console.allResults[1],
+                            'name', 'f2');
+                        assert.propertyVal(syntax_with_console.allResults[2],
+                            'name', 'f3');
+
+                    });
+                });
+            });
+
+
+        }); // __insertAllConsoleLog()
 
 
 

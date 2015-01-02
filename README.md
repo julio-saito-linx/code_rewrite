@@ -21,3 +21,14 @@ gulp --grep='filter'
 CODE_REWRITE_DEBUG_LEVEL=debug gulp
 ```
 
+## instrumentalizing code
+```sh
+echo '\n - instrumentalizing'
+node examples/instrumentalize-code/start.js
+
+echo '\n - calling f3 without consoles'
+node examples/instrumentalize-code/source/codeToInstrumentalize.js
+
+echo '\n - calling f3 with consoles'
+node examples/instrumentalize-code/destination/codeInstrumentalized.js
+```
