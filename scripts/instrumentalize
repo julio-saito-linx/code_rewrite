@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+echo '--------------------------';
+echo ' - instrumentalizing';
+echo '--------------------------';
+node examples/instrumentalize-code/start.js;
+
+echo '--------------------------';
+echo ' - calling without consoles';
+echo '--------------------------';
+node examples/instrumentalize-code/source/codeToInstrumentalize.js;
+
+echo '--------------------------';
+echo ' - calling with consoles';
+echo '--------------------------';
+node examples/instrumentalize-code/destination/codeInstrumentalized.js
