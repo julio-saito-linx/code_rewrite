@@ -210,19 +210,19 @@ describe('rewriting code', function () {
                 return rewriter.__getAllFunctionsName(syntax)
                 .then(function(functionsNamesResult) {
 
-                    // insert consoles
-                    return rewriter.__insertAllConsoleLog(functionsNamesResult)
-                    .then(function(syntax_with_console) {
+                // insert consoles
+                return rewriter.__insertAllConsoleLog(functionsNamesResult)
+                .then(function(syntax_with_console) {
 
-                        // check
-                        assert.propertyVal(syntax_with_console.allResults[0],
-                            'name', 'f1');
-                        assert.propertyVal(syntax_with_console.allResults[1],
-                            'name', 'f2');
-                        assert.propertyVal(syntax_with_console.allResults[2],
-                            'name', 'f3');
+                    // check
+                    assert.propertyVal(syntax_with_console.allResults[0],
+                        'name', 'f1');
+                    assert.propertyVal(syntax_with_console.allResults[1],
+                        'name', 'f2');
+                    assert.propertyVal(syntax_with_console.allResults[2],
+                        'name', 'f3');
 
-                    });
+                });
                 });
             });
 

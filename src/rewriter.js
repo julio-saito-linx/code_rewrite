@@ -32,12 +32,11 @@ module.exports = {
 
     writeSyntax: function(sourceFilePath, destinationFilePath) {
         var self = this;
-        this.__readFile(sourceFilePath).then(function(content) {
-            var syntax = self.__getSyntax(content);
+        this.__readFile(sourceFilePath)
+        .then(self.__getSyntax)
+        .then(function(syntax) {
             var syntaxStringified = JSON.stringify(syntax, ' ', 2);
             return self.__writeFile(destinationFilePath, syntaxStringified);
-        }).then(function() {
-            console.log('syntax write at', destinationFilePath);
         })
         .catch(function(err) {
             console.log('\n>>---------\n err.stack:', err.stack, '\n>>---------\n');
@@ -167,35 +166,39 @@ module.exports = {
 
             var block_body = f_name_result.function_node.body.body;
 
-            block_body.unshift({
-              "type": "ExpressionStatement",
-              "expression": {
-                "type": "CallExpression",
-                "callee": {
-                  "type": "MemberExpression",
-                  "computed": false,
-                  "object": {
-                    "type": "Identifier",
-                    "name": "console"
-                  },
-                  "property": {
-                    "type": "Identifier",
-                    "name": "log"
-                  }
-                },
-                "arguments": [
-                  {
-                    "type": "Literal",
-                    "value": f_name_result.name + ':',
-                    "raw": "'"+ f_name_result.name +":'"
-                  },
-                  {
-                    "type": "Identifier",
-                    "name": "arguments"
-                  }
-                ]
-              }
-            });
+            var consoleUtilSyntax = require('./syntaxes/consoleUtilSyntax');
+            var syntax = consoleUtilSyntax(f_name_result.name);
+
+            block_body.unshift(syntax);
+            // block_body.unshift({
+            //   "type": "ExpressionStatement",
+            //   "expression": {
+            //     "type": "CallExpression",
+            //     "callee": {
+            //       "type": "MemberExpression",
+            //       "computed": false,
+            //       "object": {
+            //         "type": "Identifier",
+            //         "name": "console"
+            //       },
+            //       "property": {
+            //         "type": "Identifier",
+            //         "name": "log"
+            //       }
+            //     },
+            //     "arguments": [
+            //       {
+            //         "type": "Literal",
+            //         "value": f_name_result.name + ':',
+            //         "raw": "'"+ f_name_result.name +":'"
+            //       },
+            //       {
+            //         "type": "Identifier",
+            //         "name": "arguments"
+            //       }
+            //     ]
+            //   }
+            // });
 
             result = {
                 syntax: f_name_result.syntax,       // all syntax
