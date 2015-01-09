@@ -6,6 +6,7 @@ var generator = require('./generator');
 var Q = require('q');
 var estraverse = require('estraverse');
 var log = require('./logger/logger');
+var consoleUtilSyntax = require('./syntaxes/consoleUtilSyntax');
 
 module.exports = {
     __readFile: function(fullPath) {
@@ -62,7 +63,9 @@ module.exports = {
         return self.__readFile(sourceFilePath)
          .then(self.__getSyntax)
          .then(self.__getAllFunctionsName)
-         .then(self.__insertAllConsoleLog)
+         .then(function(result) {
+            return self.__insertAllConsoleLog(result, sourceFilePath);
+         })
          .then(function(partial_result) {
             var code = self.__generateCode(partial_result.syntax);
             return self.__writeFile(destinationFilePath, code);
@@ -133,7 +136,7 @@ module.exports = {
         });
     },
 
-    __insertAllConsoleLog: function(f_name_results) {
+    __insertAllConsoleLog: function(f_name_results, source_file) {
         var rewriter = require('./rewriter');
         return new Q.Promise(function (resolve, reject) {
             var allCalls = [];
@@ -141,6 +144,7 @@ module.exports = {
             f_name_results.functionsNames.forEach(function(functionNameResult) {
                 allCalls.push(rewriter.__insertConsoleLog({
                     syntax: f_name_results.fullSyntax,
+                    sourcefile: source_file,
                     name: functionNameResult.name,
                     loc: functionNameResult.loc,
                     function_node: functionNameResult.function_node
@@ -167,39 +171,9 @@ module.exports = {
 
             var block_body = f_name_result.function_node.body.body;
 
-            var consoleUtilSyntax = require('./syntaxes/consoleUtilSyntax');
-            var syntax = consoleUtilSyntax(f_name_result.name, f_name_result.loc);
-
+            // insert the syntax for the console
+            var syntax = consoleUtilSyntax(f_name_result.sourcefile, f_name_result.name, f_name_result.loc);
             block_body.unshift(syntax);
-            // block_body.unshift({
-            //   "type": "ExpressionStatement",
-            //   "expression": {
-            //     "type": "CallExpression",
-            //     "callee": {
-            //       "type": "MemberExpression",
-            //       "computed": false,
-            //       "object": {
-            //         "type": "Identifier",
-            //         "name": "console"
-            //       },
-            //       "property": {
-            //         "type": "Identifier",
-            //         "name": "log"
-            //       }
-            //     },
-            //     "arguments": [
-            //       {
-            //         "type": "Literal",
-            //         "value": f_name_result.name + ':',
-            //         "raw": "'"+ f_name_result.name +":'"
-            //       },
-            //       {
-            //         "type": "Identifier",
-            //         "name": "arguments"
-            //       }
-            //     ]
-            //   }
-            // });
 
             result = {
                 syntax: f_name_result.syntax,       // all syntax

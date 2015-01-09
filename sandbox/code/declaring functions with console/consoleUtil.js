@@ -1,9 +1,6 @@
-var splice = Array.prototype.splice;
-var debugSource = splice.call(arguments, 0);
-var util = require('util');
-var scrubbed = util.inspect(debugSource, {
-    showHidden: true,
-    depth: 3,
-    colors: true
-});
-console.log('\n>>------------------------------------------------------\n' + '  source: ( ' + __filename + ' )' + '\n  ------------------------------------------------------\n' + '    f1()' + '\n    ----------------------------------------------------\n    arguments: ' + scrubbed + '\n<<------------------------------------------------------\n');
+console.log('\n>>------------------------------------------------------\n' +
+            '  __function_name__()' +
+            '      at (__file_name__:NUM_LINE:NUM_COLUMN)' +
+            '\n    ----------------------------------------------------\n' +
+            '    arguments: ' + require('util').inspect(Array.prototype.splice.call(arguments, 0), { showHidden: true, depth: 3, colors: true }) +
+            '\n<<------------------------------------------------------\n');

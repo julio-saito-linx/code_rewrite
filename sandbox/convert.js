@@ -5,9 +5,9 @@ var path = require('path');
 var rewriter = require('../src/rewriter');
 var Q = require('q');
 
-
 var generateSyntaxForAllFiles = function(files) {
     return new Q.Promise(function (resolve, reject, notify) {
+
         var allSyntaxes = [];
         files.forEach(function(file) {
 
@@ -16,13 +16,17 @@ var generateSyntaxForAllFiles = function(files) {
             .then(function(stats) {
 
                 if (stats.isFile()) {
+
+
                     // remove first path
                     var allPaths = file.split(path.sep);
                     var allPath2 = allPaths.splice(1);
                     var destinationPath = path.join(__dirname, 'syntax', allPath2[0], allPath2[1]);
 
                     // create new "syntax" folder
-                    FS.makeTree(path.join(__dirname, 'syntax', allPath2[0]))
+                    var dirToMake = path.join(__dirname, 'syntax', allPath2[0]);
+                    console.log('\n>>---------\n dirToMake:', dirToMake, '\n>>---------\n');
+                    FS.makeTree(dirToMake)
                     .then(function() {
 
                     // write syntax
