@@ -84,6 +84,7 @@ module.exports = {
                         if (node.init && node.init.type === 'FunctionExpression') {
                             result = {
                                 name: node.id.name,       // var FUNC_VAR_NAME = ....
+                                loc: node.loc,            // loc: { start: { line: 2, column: 25 }, end: { line: 2, column: 26 } }
                                 function_node: node.init  // FunctionExpression
                             };
 
@@ -98,6 +99,7 @@ module.exports = {
                         if (node.id && node.id.type === 'Identifier' && node.id.name) {
                             result = {
                                 name: node.id.name,  // var FUNC_VAR_NAME = ....
+                                loc: node.loc,       // loc: { start: { line: 2, column: 25 }, end: { line: 2, column: 26 } }
                                 function_node: node  // FunctionExpression
                             };
 
@@ -137,13 +139,12 @@ module.exports = {
             var allCalls = [];
 
             f_name_results.functionsNames.forEach(function(functionNameResult) {
-
                 allCalls.push(rewriter.__insertConsoleLog({
                     syntax: f_name_results.fullSyntax,
                     name: functionNameResult.name,
+                    loc: functionNameResult.loc,
                     function_node: functionNameResult.function_node
                 }));
-
             });
 
             Q.all(allCalls).then(function(allResults) {
@@ -167,7 +168,7 @@ module.exports = {
             var block_body = f_name_result.function_node.body.body;
 
             var consoleUtilSyntax = require('./syntaxes/consoleUtilSyntax');
-            var syntax = consoleUtilSyntax(f_name_result.name);
+            var syntax = consoleUtilSyntax(f_name_result.name, f_name_result.loc);
 
             block_body.unshift(syntax);
             // block_body.unshift({

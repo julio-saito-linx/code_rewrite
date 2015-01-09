@@ -1,5 +1,5 @@
 // this comment will be preserved
-var f1 = function (a, b) {
+var f_concat = function (a, b) {
         var splice = Array.prototype.splice;
     var debugSource = splice.call(arguments, 0);
     var util = require('util');
@@ -8,10 +8,13 @@ var f1 = function (a, b) {
         depth: 3,
         colors: true
     });
-    console.log('\n>>------------------------------------------------------\n' + '  source: ( ' + __filename + ' )' + '\n  ------------------------------------------------------\n' + '    f1()' + '\n    ----------------------------------------------------\n    arguments: ' + scrubbed + '\n<<------------------------------------------------------\n');
-    return a + b;
+    console.log('\n>>------------------------------------------------------\n' + '  source: ( ' + __filename + ' )' + '\n  ------------------------------------------------------\n' + '    f_concat() 2' + '\n    ----------------------------------------------------\n    arguments: ' + scrubbed + '\n<<------------------------------------------------------\n');
+    return [
+        a,
+        b
+    ];
 };
-var f2 = function (a) {
+var f_just_return = function (a) {
         var splice = Array.prototype.splice;
     var debugSource = splice.call(arguments, 0);
     var util = require('util');
@@ -20,10 +23,10 @@ var f2 = function (a) {
         depth: 3,
         colors: true
     });
-    console.log('\n>>------------------------------------------------------\n' + '  source: ( ' + __filename + ' )' + '\n  ------------------------------------------------------\n' + '    f2()' + '\n    ----------------------------------------------------\n    arguments: ' + scrubbed + '\n<<------------------------------------------------------\n');
+    console.log('\n>>------------------------------------------------------\n' + '  source: ( ' + __filename + ' )' + '\n  ------------------------------------------------------\n' + '    f_just_return() 7' + '\n    ----------------------------------------------------\n    arguments: ' + scrubbed + '\n<<------------------------------------------------------\n');
     return a;
 };
-var f3 = function (a, b, c) {
+function concatAll(a, b, c) {
         var splice = Array.prototype.splice;
     var debugSource = splice.call(arguments, 0);
     var util = require('util');
@@ -32,8 +35,11 @@ var f3 = function (a, b, c) {
         depth: 3,
         colors: true
     });
-    console.log('\n>>------------------------------------------------------\n' + '  source: ( ' + __filename + ' )' + '\n  ------------------------------------------------------\n' + '    f3()' + '\n    ----------------------------------------------------\n    arguments: ' + scrubbed + '\n<<------------------------------------------------------\n');
-    return f1(a, b) + f2(c);
-};
-var result = f3(1, 2, 3);
-console.log('\n>>---------\n result:', result, '\n>>---------\n');
+    console.log('\n>>------------------------------------------------------\n' + '  source: ( ' + __filename + ' )' + '\n  ------------------------------------------------------\n' + '    concatAll() 12' + '\n    ----------------------------------------------------\n    arguments: ' + scrubbed + '\n<<------------------------------------------------------\n');
+    return [
+        f_concat(a, b),
+        f_just_return(c)
+    ];
+}
+var result = concatAll(1, ' 2 ', { name: 'value' });
+console.log(result);

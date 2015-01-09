@@ -31,4 +31,7 @@ node examples/instrumentalize-code/source/codeToInstrumentalize.js
 
 echo '\n - calling f3 with consoles'
 node examples/instrumentalize-code/destination/codeInstrumentalized.js
+
+#all in one line
+node examples/instrumentalize-code/start.js; node examples/instrumentalize-code/source/codeToInstrumentalize.js; node examples/instrumentalize-code/destination/codeInstrumentalized.js
 ```

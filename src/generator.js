@@ -21,7 +21,8 @@ var default_options = {
         compact: false,
         parentheses: true,
         semicolons: true,
-        safeConcatenation: false
+        safeConcatenation: false,
+        preserveBlankLines: true
     }
 };
 

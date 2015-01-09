@@ -1,7 +1,8 @@
 'use strict';
 
 module.exports =
-function (functionName) {
+function (functionName, loc) {
+    var startLine = loc && loc.start && loc.start.line;
     return {
   "type": "Program",
   "body": [
@@ -465,8 +466,8 @@ function (functionName) {
                   },
                   "right": {
                     "type": "Literal",
-                    "value": "    " + functionName + "()",
-                    "raw": "'    " + functionName + "()'",
+                    "value": "    " + functionName + "() " + startLine,
+                    "raw": "'    " + functionName + "()' " + startLine,
                     "range": [
                       389,
                       399
@@ -1074,7 +1075,7 @@ function (functionName) {
     },
     {
       "type": "String",
-      "value": "'    " + functionName + "()'",
+      "value": "'    " + functionName + "()' " + startLine,
       "range": [
         389,
         399

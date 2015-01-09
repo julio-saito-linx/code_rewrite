@@ -9,7 +9,8 @@ module.exports = {
         	raw: true,
         	tokens: true,
         	range: true,
-        	comment: true
+        	comment: true,
+            loc: true
         };
 
         // log.debug('\n\n:: parser.parse() - code::');
